@@ -1,0 +1,9 @@
+name = jQuery easyListSplitter
+description = "Drupal integration for easyListSplitter jQuery plugin originally developed by Andrea Cima Serniotti."
+core = 7.x
+package = User interface
+configure = admin/config/user-interface/listsplitter
+version = "7.x-1.0"
+core = "7.x"
+project = "listsplitter"
+

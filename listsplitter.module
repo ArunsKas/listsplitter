@@ -1,0 +1,116 @@
+<?php
+
+/**
+ * Implements hook_init().
+ */
+function listsplitter_init() {
+  if (variable_get('listsplitter_enabled', TRUE)) {
+    _listsplitter_add_libs();
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function listsplitter_menu() {
+  $items = array();
+  $items['admin/config/user-interface/listsplitter'] = array(
+    'title' => 'jQuery listsplitter',
+    'description' => 'Configure jQuery listsplitter settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('listsplitter_admin_form'),
+    'access arguments' => array('administer jquery listsplitter'),
+    'file' => 'listsplitter.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function listsplitter_permission() {
+  return array(
+    'administer jquery listsplitter' => array(
+      'title' => t('Administer jQuery listsplitter'),
+      'description' => t('Perform administration tasks for jQuery listsplitter.'),
+    ),
+  );
+}
+
+/**
+ * Put necessary JS related settings into Drupal.settings. Force load required
+ *  jQuery plugins.
+ */
+function _listsplitter_add_libs() {
+
+  // Process script options accordingly.
+  $listsplitter_script_options1 = array_filter(variable_get('listsplitter_script_options1', array()), 'trim');
+  if (!empty($listsplitter_script_options1)) {
+    $colnum1 = $listsplitter_script_options1['colnum'];
+    $listitems1 = $listsplitter_script_options1['listitems'];
+  } else {
+    $colnum1 = 1;
+    $listitems1 = 1;
+  }
+  $listsplitter_script_options2 = array_filter(variable_get('listsplitter_script_options2', array()), 'trim');
+  if (!empty($listsplitter_script_options2)) {
+    $colnum2 = $listsplitter_script_options2['colnum'];
+    $listitems2 = $listsplitter_script_options2['listitems'];
+  } else {
+    $colnum2 = 1;
+    $listitems2 = 1;
+  }
+
+  // Building a Drupal.settings entry.
+  
+  $settings = array(
+    'listsplitter_class' => implode(', ', _listsplitter_prepare_ids(variable_get('listsplitter_class', ''))),
+    'colnum1' => $colnum1,
+    'listitems1' => $listitems1,
+    'colnum2' => $colnum2,
+    'listitems2' => $listitems2,
+  );
+
+  $libs_loc = _listsplitter_find_libs();
+
+  if ($libs_loc) {
+    drupal_add_library('system', 'ui.core');
+    // drupal_add_library('system', 'ui.widget');
+    // drupal_add_library('system', 'ui.position');
+
+    drupal_add_js($libs_loc . '/jquery.easyListSplitter.js');
+
+    drupal_add_js(array('listsplitter' => $settings), 'setting');
+    drupal_add_js(drupal_get_path('module', 'listsplitter') . '/js/listsplitter.js');
+  }
+}
+
+/**
+ * Get a list of CSS ids from a textarea and prepare them for use.
+ *
+ * @return $css_ids
+ *  An iterative array of string CSS ids.
+ */
+function _listsplitter_prepare_ids($config_string) {
+  // Prepare CSS form ids.
+  if (!isset($css_ids)) {
+    $css_ids = explode("\n", $config_string);
+    $css_ids = array_filter(array_map('trim', $css_ids));
+  }
+
+  return $css_ids;
+}
+
+/**
+ * Return the path of jQuery listsplitter plugin.
+ *
+ * @return string
+ *  Path for the jquery.listsplitter jQuery plugin, relative to Drupal root.
+ *
+ * @todo Support the Libraries module.
+ * @todo Check for multiple possible locations for the presence of the listsplitter plugin.
+ * @todo Check for versions of the listsplitter plugin.
+ */
+function _listsplitter_find_libs() {
+  return drupal_get_path('module', 'listsplitter') . '/js/jquery.listsplitter';
+}
